@@ -41,3 +41,15 @@ fit <- lmFit(normalized.data,design)
 fit <- eBayes(fit)
 options(digits =2)
 res <- topTable(fit,coef = 1,number = Inf,adjust.method = "none")
+
+res %>% 
+  rownames_to_column(var = "ID") %>% 
+  inner_join(.,subFeature.data, by = "ID") -> Diffexp1
+write.csv(Diffexp1,"FinalDEGS.txt")
+colSums(is.na(Diffexp1))
+
+
+
+
+
+
