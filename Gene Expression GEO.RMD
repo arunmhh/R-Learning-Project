@@ -1,0 +1,55 @@
+---
+title: "Gene Expression analysis GEO"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+# Download the library
+
+```{r }
+library(tidyverse)
+library(GEOquery)
+```
+
+# Read in the data#
+```{r}
+dat1 <- read.csv("GSE183947_fpkm.csv/GSE183947_fpkm.csv")
+```
+
+# get metadata#
+```{r}
+gse <- getGEO(GEO = 'GSE183947', GSEMatrix = TRUE)
+```
+# get phenodata
+```{r}
+mdata <- pData(phenoData(gse[[1]]))
+head(mdata)
+```
+```{r }
+mdata.modified <- mdata %>% select(1,17,40,41) %>% 
+  rename(tissue = `tissue:ch1`) %>%
+  rename(metastasis = `metastasis:ch1`)
+```
+# Change data wider format to longer format
+# Using the gather command
+```{r}
+data1.modified <- dat1 %>% rename( Gene =  X )%>%
+  gather(., key = "samples",
+         value = "Expression", -Gene) 
+```
+# Join the data frames#
+```{r}
+data1.modified %>%
+  left_join(.,mdata.modified, by = c("samples" = "description")) ->dataExp
+```
+# Explore data#
+```{r}
+dataExp %>% 
+  filter(Gene == "BRCA1" | Gene== "BRCA2" | Gene == "MYC") %>% 
+  group_by(Gene, tissue) %>% 
+  summarise(mean_Exp = mean(Expression), sd_Exp = sd(Expression)) %>% arrange (-mean_Exp) %>% head()
+```
+
+
